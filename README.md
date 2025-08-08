@@ -4,7 +4,7 @@ Slipstream is an interactive, browser-based ink simulation you can run entirely 
 Paint swirling, turbulent ink with your mouse, experiment with colour palettes and simulation settings, or switch on hypnotic automated visualisers that generate endless flowing patterns. Designed to be both creative and meditative, Slipstream works equally well for a few minutes of play or as a mesmerising full-screen display.
 
 ## Live Demo
-[**Launch Slipstream**](https://swiftredvox.github.io/slipstream/Slipstream_V40.html)
+[**Launch Slipstream**](https://swiftredvox.github.io/slipstream/Slipstream_V40.html)  
 Alternatively, download the HTML file from the repo to portably run this anywhere offline. 
 
 ## Features
@@ -37,4 +37,4 @@ Alternatively, download the HTML file from the repo to portably run this anywher
 
 ## License
 This work is released under [CC0 1.0 Public Domain Dedication](https://creativecommons.org/publicdomain/zero/1.0/).  
-You may copy, modify, and use it for any purpose without permission. Attribution is appreciate, but not required. Enjoy! 
+You may copy, modify, and use it for any purpose without permission. Attribution is appreciated, but not required. Enjoy! 
