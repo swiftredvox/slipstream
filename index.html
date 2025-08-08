@@ -4,146 +4,192 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Slipstream — Interactive Ink Simulation</title>
-<meta name="description" content="Slipstream is a single-file, browser-based ink simulation and visualiser. Paint flowing ink in real time and generate hypnotic patterns — no installs, no tracking.">
+<meta name="description" content="Slipstream is a single-file, browser-based ink simulation and visualiser.">
 <style>
   :root{
-    --bg:#080c12;
-    --bg2:#0b1118;
-    --panel:#0e141b;
-    --muted:#a8b9cf;
-    --text:#e6eef8;
+    --bg1:#070a0f; --bg2:#0a1017; --bg3:#0b0f16;
+    --text:#e6eef8; --muted:#a8b9cf;
     --stroke:rgba(255,255,255,0.06);
+    --btn:#101720;
+    --accent:#6ee7ff; --accent2:#a78bfa; --accent3:#8bd0ff;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0;
-    background:radial-gradient(1200px 800px at 70% 10%, #0e1620 0%, var(--bg) 55%, #05080c 100%);
-    color:var(--text);
+    margin:0; color:var(--text);
     font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    -webkit-font-smoothing:antialiased;
-    line-height:1.4;
+    -webkit-font-smoothing:antialiased; line-height:1.4; overflow-x:hidden;
+    background: var(--bg1);
   }
-  .aura{
-    position:fixed; inset:-10vmax; z-index:-1; filter: blur(40px) saturate(120%);
-    pointer-events:none; opacity:.7; mix-blend-mode:screen;
+
+  /* ===== Dark animated background (subtle but noticeable) ===== */
+  .bg-wrap{ position:fixed; inset:0; z-index:-1; overflow:hidden }
+  /* Layer 1: slow drifting radial gradients */
+  .bg-base{
+    position:absolute; inset:-10vmax;
     background:
-      radial-gradient(40vmax 30vmax at 15% 20%, rgba(120,220,255,.12), transparent 60%),
-      radial-gradient(50vmax 35vmax at 85% 25%, rgba(160,120,255,.10), transparent 60%),
-      radial-gradient(60vmax 40vmax at 40% 85%, rgba(60,160,255,.10), transparent 60%);
-    animation: drift 22s linear infinite;
+      radial-gradient(1200px 800px at 70% 10%, #0c1320 0%, var(--bg2) 55%, var(--bg3) 100%),
+      radial-gradient(900px 700px at 20% 80%, rgba(100,140,220,.12), transparent 60%),
+      radial-gradient(1000px 900px at 85% 60%, rgba(170,120,240,.10), transparent 65%);
+    filter: saturate(110%);
+    animation: drift1 38s ease-in-out infinite;
   }
-  @keyframes drift{
-    0%{ transform:translate3d(0,0,0) scale(1.0);}
-    50%{ transform:translate3d(-1.5%,1.2%,0) scale(1.03);}
-    100%{ transform:translate3d(0,0,0) scale(1.0);}
+  /* Layer 2: faint rotating conic sheen for life */
+  .bg-sheen{
+    position:absolute; inset:-15vmax;
+    background: conic-gradient(from 0deg at 60% 40%,
+      rgba(110,231,255,.05), transparent 45deg,
+      rgba(167,139,250,.05), transparent 120deg,
+      rgba(139,208,255,.05), transparent 200deg);
+    filter: blur(24px);
+    animation: spin 120s linear infinite;
+    opacity:.55;
   }
-  header{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:20px 22px; position:relative;
+  /* Layer 3: very subtle moving grain */
+  .bg-grain{
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 2px, transparent 2px 4px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 2px, transparent 2px 4px);
+    mix-blend-mode:overlay; opacity:.06;
+    animation: grainShift 6s steps(6) infinite;
   }
-  .brand{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:0.2px;}
-  .brand .logo{
-    width:34px; height:34px; border-radius:12px; display:grid; place-items:center;
-    background: radial-gradient(120% 120% at 30% 20%, #1b2b3b 0%, #0a1320 65%);
-    border:1px solid var(--stroke);
+
+  @keyframes drift1{
+    0%{ transform:translate3d(0,0,0) scale(1) }
+    50%{ transform:translate3d(-1.8%,1.4%,0) scale(1.02) }
+    100%{ transform:translate3d(0,0,0) scale(1) }
   }
-  .brand .logo svg{width:22px;height:22px;opacity:.95;filter:drop-shadow(0 0 6px rgba(77,195,255,.35))}
-  .brand .title{font-size:18px}
-  .ver{opacity:.65;font-weight:600}
-  nav a{
-    color:var(--muted); text-decoration:none; font-size:14px; padding:8px 10px; border-radius:10px;
+  @keyframes spin{
+    to{ transform:rotate(360deg) }
   }
-  nav a:hover{ background:rgba(255,255,255,0.05); color:var(--text); }
-  .hero{
-    display:grid; grid-template-columns: 1.1fr 0.9fr; gap:24px; align-items:center;
-    padding:40px 22px 22px; max-width:1150px; margin:0 auto;
+  @keyframes grainShift{
+    0%{ transform:translate(0,0) }
+    25%{ transform:translate(-1.5%, 1%) }
+    50%{ transform:translate(1%, -1.5%) }
+    75%{ transform:translate(1.2%, .6%) }
+    100%{ transform:translate(0,0) }
   }
-  .h-title{
-    font-size:44px; line-height:1.04; margin:0 0 12px;
-    text-shadow: 0 6px 30px rgba(0,0,0,.45);
+  @media (prefers-reduced-motion:reduce){
+    .bg-base,.bg-sheen,.bg-grain{animation:none}
   }
-  .h-sub{color:var(--muted); font-size:16px; margin-bottom:18px;}
-  .btn{
-    background:linear-gradient(180deg, #15202b, #0f1822);
-    color:var(--text);
-    border:1px solid var(--stroke);
-    border-radius:14px; padding:12px 16px; font-weight:600; letter-spacing:.2px; cursor:pointer;
-    display:inline-flex; align-items:center; gap:10px;
-    text-decoration:none;
+
+  /* ===== Header ===== */
+  header{ display:flex; align-items:center; justify-content:space-between; padding:20px 22px; }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px }
+  .logo{ width:28px; height:28px; border-radius:9px; display:grid; place-items:center;
+         background:radial-gradient(120% 120% at 30% 20%, #1b2b3b 0%, #0a1320 65%); border:1px solid var(--stroke);
+         box-shadow:inset 0 0 0 1px rgba(77,195,255,.08) }
+  .logo svg{ width:18px; height:18px; opacity:.95; filter:drop-shadow(0 0 6px rgba(77,195,255,.35)) }
+  .brand .ver{ opacity:.65; font-weight:600 }
+  .nav{ display:flex; gap:10px }
+  .nav a{ color:var(--muted); text-decoration:none; font-size:14px; padding:8px 10px; border-radius:10px; }
+  .nav a:hover{ background:rgba(255,255,255,0.06); color:var(--text) }
+
+  /* ===== Hero ===== */
+  .hero{ max-width:980px; margin:14px auto 6px; padding:0 22px; display:flex; flex-direction:column; align-items:center; text-align:center }
+  h1{
+    margin:14px 0 8px; font-size:72px; line-height:1.02; font-weight:800;
+    /* Subtle blue-violet gradient text */
+    background:linear-gradient(180deg, #e9f1ff 0%, #dfe6ff 30%, #e9e5ff 100%);
+    background-clip:text; -webkit-background-clip:text; color:transparent;
+    text-shadow:0 8px 30px rgba(0,0,0,.45);
   }
-  .btn:hover{ filter:brightness(1.07);}
-  .btn .ic{ width:18px; height:18px; opacity:.95; }
-  .btn.primary{
-    background: radial-gradient(90% 120% at 20% 0%, #1a2a3a 0%, #111a25 55%);
-    border-color: rgba(77,195,255,.25);
+  .sub{ font-size:18px; color:var(--muted); max-width:760px; margin:0 0 26px }
+
+  /* ===== CTA BUTTON (Single, subtle breathing glow) ===== */
+  .cta-row{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-bottom:18px }
+  .cta{
+    position:relative; display:inline-block; padding:16px 28px; font-size:18px; font-weight:700;
+    color:var(--text); text-decoration:none; border-radius:14px; background:var(--btn);
+    transition: box-shadow .25s ease, transform .18s ease, filter .25s ease;
+    isolation:isolate;
   }
-  .showcase{
-    position:relative; aspect-ratio:16/10; border-radius:16px; overflow:hidden;
-    background: radial-gradient(120% 120% at 50% 0%, #0e1520 0%, #0a0f17 55%, #070b11 100%);
-    border:1px solid var(--stroke);
+  /* Subtle breathing halo at half intensity of previous version */
+  .ctaBreath{ --g: rgba(139,208,255,.30); --g2: rgba(167,139,250,.22); }
+  .ctaBreath{ animation: breathe 4.8s ease-in-out infinite }
+  @keyframes breathe{
+    0%,100%{ box-shadow: 0 0 6px 1.5px var(--g) }
+    50%{    box-shadow: 0 0 14px 5px var(--g), 0 0 20px 7px var(--g2) }
   }
-  .showcase .hint{
-    position:absolute; right:12px; bottom:10px; font-size:12px; color:#cfe7ff; opacity:.85;
-    background:rgba(0,0,0,.35); padding:6px 8px; border-radius:10px;
+  /* Hover: slightly lighter and tiny grow */
+  .ctaBreath:hover{
+    transform: scale(1.01);
+    filter: brightness(1.06);
+    box-shadow: 0 0 16px 6px var(--g), 0 0 24px 10px var(--g2);
   }
-  .features{ max-width:1150px; margin:26px auto 40px; padding:0 22px; display:grid; gap:16px; grid-template-columns: repeat(3, minmax(0,1fr)); }
-  .feat{ padding:18px; border:1px solid var(--stroke); border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)); }
-  .feat h3{ margin:0 0 6px; font-size:16px; }
-  .feat p{ margin:0; color:var(--muted); font-size:14px; }
-  footer{ color:var(--muted); font-size:12px; padding:24px; text-align:center; opacity:.85 }
-  @media (max-width: 980px){
-    .hero{ grid-template-columns: 1fr; }
+  /* inner fill */
+  .cta::after{ content:""; position:absolute; inset:2px; border-radius:12px;
+               background:linear-gradient(180deg, #17202b, #0f1620); z-index:-1 }
+
+  /* ===== Features ===== */
+  .features{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px;
+             max-width:1150px; margin:26px auto 8px; padding:0 22px }
+  .card{ padding:18px; border:1px solid var(--stroke); border-radius:16px;
+         background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)) }
+  .card h3{ margin:0 0 6px; font-size:16px }
+  .card p{ margin:0; color:var(--muted); font-size:14px }
+
+  .micro{ text-align:center; color:var(--muted); font-size:12px; opacity:.9; margin:14px 0 40px }
+
+  @media (max-width:980px){
+    h1{font-size:54px}
+    .features{grid-template-columns:1fr}
   }
 </style>
 </head>
 <body>
-<div class="aura"></div>
+<div class="bg-wrap" aria-hidden="true">
+  <div class="bg-base"></div>
+  <div class="bg-sheen"></div>
+  <div class="bg-grain"></div>
+</div>
+
 <header>
   <div class="brand">
     <div class="logo" aria-hidden="true">
+      <!-- simple ink swirl icon -->
       <svg viewBox="0 0 24 24" fill="none">
         <path d="M19.5 11.5c0 4-3 7-7 7-3.2 0-5.5-2-5.5-4.6 0-2.2 1.8-3.9 4.2-3.9 1.8 0 3.3 1 3.3 2.5 0 1.2-1 2.1-2.3 2.1-.9 0-1.7-.5-1.9-1.2" stroke="#6ee7ff" stroke-width="1.6" stroke-linecap="round"/>
       </svg>
     </div>
-    <div class="title">Slipstream <span class="ver">V40</span></div>
+    <div class="ver">Slipstream <span style="opacity:.65">V40</span></div>
   </div>
-  <nav>
+
+  <nav class="nav">
     <a href="Slipstream_V40.html">Launch</a>
     <a href="https://github.com/swiftredvox/slipstream" target="_blank" rel="noopener">GitHub</a>
   </nav>
 </header>
+
 <section class="hero">
-  <div>
-    <h1 class="h-title">Interactive, real-time ink simulation — all in a single HTML file</h1>
-    <p class="h-sub">Paint swirling ink, explore hypnotic visualisers, and capture screenshots — no installs, no tracking, works offline.</p>
-    <a class="btn primary" href="Slipstream_V40.html">
-      <svg class="ic" viewBox="0 0 24 24" fill="none">
-        <path d="M8 12h8M12 8v8" stroke="#a8dcff" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      Launch Slipstream
-    </a>
-  </div>
-  <div class="showcase">
-    <div class="hint">Launch to interact</div>
+  <h1>Slipstream</h1>
+  <p class="sub">
+    Interactive, real‑time ink simulation — all in a single HTML file.<br>
+    Paint swirling ink, explore hypnotic visualisers, and capture screenshots.
+  </p>
+
+  <div class="cta-row">
+    <a class="cta ctaBreath" href="Slipstream_V40.html">Launch Slipstream</a>
   </div>
 </section>
+
 <section class="features">
-  <div class="feat">
-    <h3>Real-time ink</h3>
-    <p>GPU-accelerated flow with brush input, velocity splats, and glow toggle.</p>
+  <div class="card">
+    <h3>Real‑Time Ink</h3>
+    <p>GPU‑accelerated flow with brush input, velocity splats, and an optional glow.</p>
   </div>
-  <div class="feat">
-    <h3>Visualiser modes</h3>
-    <p>Helix Pair, Starburst, Wave Sweep, Infinity, and more — plus a randomiser.</p>
+  <div class="card">
+    <h3>Visualiser Modes</h3>
+    <p>Helix Pair, Starburst, Wave Sweep, Infinity or more. Also includes a randomiser.</p>
   </div>
-  <div class="feat">
+  <div class="card">
     <h3>Portable</h3>
     <p>Zero installs or external assets. Share one HTML file and it just works.</p>
   </div>
 </section>
-<footer>
-  Built with HTML, CSS, and vanilla JS • No tracking • CC0 Public Domain
-</footer>
+
+<p class="micro">Built with HTML, CSS, JavaScript &amp; WebGL2 • CC0 Public Domain</p>
+
 </body>
 </html>
