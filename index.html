@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slipstream — Interactive Ink Simulation</title>
+<meta name="description" content="Slipstream is a single-file, browser-based ink simulation and visualiser. Paint flowing ink in real time and generate hypnotic patterns — no installs, no tracking.">
+<style>
+  :root{
+    --bg:#080c12;
+    --bg2:#0b1118;
+    --panel:#0e141b;
+    --muted:#a8b9cf;
+    --text:#e6eef8;
+    --stroke:rgba(255,255,255,0.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 800px at 70% 10%, #0e1620 0%, var(--bg) 55%, #05080c 100%);
+    color:var(--text);
+    font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.4;
+  }
+  .aura{
+    position:fixed; inset:-10vmax; z-index:-1; filter: blur(40px) saturate(120%);
+    pointer-events:none; opacity:.7; mix-blend-mode:screen;
+    background:
+      radial-gradient(40vmax 30vmax at 15% 20%, rgba(120,220,255,.12), transparent 60%),
+      radial-gradient(50vmax 35vmax at 85% 25%, rgba(160,120,255,.10), transparent 60%),
+      radial-gradient(60vmax 40vmax at 40% 85%, rgba(60,160,255,.10), transparent 60%);
+    animation: drift 22s linear infinite;
+  }
+  @keyframes drift{
+    0%{ transform:translate3d(0,0,0) scale(1.0);}
+    50%{ transform:translate3d(-1.5%,1.2%,0) scale(1.03);}
+    100%{ transform:translate3d(0,0,0) scale(1.0);}
+  }
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 22px; position:relative;
+  }
+  .brand{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:0.2px;}
+  .brand .logo{
+    width:34px; height:34px; border-radius:12px; display:grid; place-items:center;
+    background: radial-gradient(120% 120% at 30% 20%, #1b2b3b 0%, #0a1320 65%);
+    border:1px solid var(--stroke);
+  }
+  .brand .logo svg{width:22px;height:22px;opacity:.95;filter:drop-shadow(0 0 6px rgba(77,195,255,.35))}
+  .brand .title{font-size:18px}
+  .ver{opacity:.65;font-weight:600}
+  nav a{
+    color:var(--muted); text-decoration:none; font-size:14px; padding:8px 10px; border-radius:10px;
+  }
+  nav a:hover{ background:rgba(255,255,255,0.05); color:var(--text); }
+  .hero{
+    display:grid; grid-template-columns: 1.1fr 0.9fr; gap:24px; align-items:center;
+    padding:40px 22px 22px; max-width:1150px; margin:0 auto;
+  }
+  .h-title{
+    font-size:44px; line-height:1.04; margin:0 0 12px;
+    text-shadow: 0 6px 30px rgba(0,0,0,.45);
+  }
+  .h-sub{color:var(--muted); font-size:16px; margin-bottom:18px;}
+  .btn{
+    background:linear-gradient(180deg, #15202b, #0f1822);
+    color:var(--text);
+    border:1px solid var(--stroke);
+    border-radius:14px; padding:12px 16px; font-weight:600; letter-spacing:.2px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:10px;
+    text-decoration:none;
+  }
+  .btn:hover{ filter:brightness(1.07);}
+  .btn .ic{ width:18px; height:18px; opacity:.95; }
+  .btn.primary{
+    background: radial-gradient(90% 120% at 20% 0%, #1a2a3a 0%, #111a25 55%);
+    border-color: rgba(77,195,255,.25);
+  }
+  .showcase{
+    position:relative; aspect-ratio:16/10; border-radius:16px; overflow:hidden;
+    background: radial-gradient(120% 120% at 50% 0%, #0e1520 0%, #0a0f17 55%, #070b11 100%);
+    border:1px solid var(--stroke);
+  }
+  .showcase .hint{
+    position:absolute; right:12px; bottom:10px; font-size:12px; color:#cfe7ff; opacity:.85;
+    background:rgba(0,0,0,.35); padding:6px 8px; border-radius:10px;
+  }
+  .features{ max-width:1150px; margin:26px auto 40px; padding:0 22px; display:grid; gap:16px; grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .feat{ padding:18px; border:1px solid var(--stroke); border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)); }
+  .feat h3{ margin:0 0 6px; font-size:16px; }
+  .feat p{ margin:0; color:var(--muted); font-size:14px; }
+  footer{ color:var(--muted); font-size:12px; padding:24px; text-align:center; opacity:.85 }
+  @media (max-width: 980px){
+    .hero{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="aura"></div>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M19.5 11.5c0 4-3 7-7 7-3.2 0-5.5-2-5.5-4.6 0-2.2 1.8-3.9 4.2-3.9 1.8 0 3.3 1 3.3 2.5 0 1.2-1 2.1-2.3 2.1-.9 0-1.7-.5-1.9-1.2" stroke="#6ee7ff" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="title">Slipstream <span class="ver">V40</span></div>
+  </div>
+  <nav>
+    <a href="Slipstream_V40.html">Launch</a>
+    <a href="https://github.com/swiftredvox/slipstream" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<section class="hero">
+  <div>
+    <h1 class="h-title">Interactive, real-time ink simulation — all in a single HTML file</h1>
+    <p class="h-sub">Paint swirling ink, explore hypnotic visualisers, and capture screenshots — no installs, no tracking, works offline.</p>
+    <a class="btn primary" href="Slipstream_V40.html">
+      <svg class="ic" viewBox="0 0 24 24" fill="none">
+        <path d="M8 12h8M12 8v8" stroke="#a8dcff" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Launch Slipstream
+    </a>
+  </div>
+  <div class="showcase">
+    <div class="hint">Launch to interact</div>
+  </div>
+</section>
+<section class="features">
+  <div class="feat">
+    <h3>Real-time ink</h3>
+    <p>GPU-accelerated flow with brush input, velocity splats, and glow toggle.</p>
+  </div>
+  <div class="feat">
+    <h3>Visualiser modes</h3>
+    <p>Helix Pair, Starburst, Wave Sweep, Infinity, and more — plus a randomiser.</p>
+  </div>
+  <div class="feat">
+    <h3>Portable</h3>
+    <p>Zero installs or external assets. Share one HTML file and it just works.</p>
+  </div>
+</section>
+<footer>
+  Built with HTML, CSS, and vanilla JS • No tracking • CC0 Public Domain
+</footer>
+</body>
+</html>
