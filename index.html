@@ -22,9 +22,8 @@
     background: var(--bg1);
   }
 
-  /* ===== Dark animated background (subtle but noticeable) ===== */
+  /* ===== Background ===== */
   .bg-wrap{ position:fixed; inset:0; z-index:-1; overflow:hidden }
-  /* Layer 1: slow drifting radial gradients */
   .bg-base{
     position:absolute; inset:-10vmax;
     background:
@@ -34,7 +33,6 @@
     filter: saturate(110%);
     animation: drift1 38s ease-in-out infinite;
   }
-  /* Layer 2: faint rotating conic sheen for life */
   .bg-sheen{
     position:absolute; inset:-15vmax;
     background: conic-gradient(from 0deg at 60% 40%,
@@ -45,7 +43,6 @@
     animation: spin 120s linear infinite;
     opacity:.55;
   }
-  /* Layer 3: very subtle moving grain */
   .bg-grain{
     position:absolute; inset:0;
     background-image:
@@ -54,15 +51,8 @@
     mix-blend-mode:overlay; opacity:.06;
     animation: grainShift 6s steps(6) infinite;
   }
-
-  @keyframes drift1{
-    0%{ transform:translate3d(0,0,0) scale(1) }
-    50%{ transform:translate3d(-1.8%,1.4%,0) scale(1.02) }
-    100%{ transform:translate3d(0,0,0) scale(1) }
-  }
-  @keyframes spin{
-    to{ transform:rotate(360deg) }
-  }
+  @keyframes drift1{ 0%{ transform:translate3d(0,0,0) scale(1) } 50%{ transform:translate3d(-1.8%,1.4%,0) scale(1.02) } 100%{ transform:translate3d(0,0,0) scale(1) } }
+  @keyframes spin{ to{ transform:rotate(360deg) } }
   @keyframes grainShift{
     0%{ transform:translate(0,0) }
     25%{ transform:translate(-1.5%, 1%) }
@@ -74,7 +64,7 @@
     .bg-base,.bg-sheen,.bg-grain{animation:none}
   }
 
-  /* ===== Header ===== */
+  /* ===== Header (full-width, edges) ===== */
   header{ display:flex; align-items:center; justify-content:space-between; padding:20px 22px; }
   .brand{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px }
   .logo{ width:28px; height:28px; border-radius:9px; display:grid; place-items:center;
@@ -86,55 +76,69 @@
   .nav a{ color:var(--muted); text-decoration:none; font-size:14px; padding:8px 10px; border-radius:10px; }
   .nav a:hover{ background:rgba(255,255,255,0.06); color:var(--text) }
 
-  /* ===== Hero ===== */
-  .hero{ max-width:980px; margin:14px auto 6px; padding:0 22px; display:flex; flex-direction:column; align-items:center; text-align:center }
+  /* ===== Container and Grid Alignment ===== */
+  .container{ max-width:1150px; margin:0 auto; padding:0 22px }
+  .hero-grid{
+    display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px;
+    align-items:start; margin:14px 0 6px;
+  }
+  .hero-left{ grid-column:1 / span 2; text-align:left; display:flex; flex-direction:column; align-items:flex-start }
+  .hero-right{ grid-column:3 }
+
+  /* ===== Hero text ===== */
   h1{
     margin:14px 0 8px; font-size:72px; line-height:1.02; font-weight:800;
-    /* Subtle blue-violet gradient text */
     background:linear-gradient(180deg, #e9f1ff 0%, #dfe6ff 30%, #e9e5ff 100%);
     background-clip:text; -webkit-background-clip:text; color:transparent;
     text-shadow:0 8px 30px rgba(0,0,0,.45);
   }
   .sub{ font-size:18px; color:var(--muted); max-width:760px; margin:0 0 26px }
 
-  /* ===== CTA BUTTON (Single, subtle breathing glow) ===== */
-  .cta-row{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-bottom:18px }
+  /* ===== CTA ===== */
   .cta{
     position:relative; display:inline-block; padding:16px 28px; font-size:18px; font-weight:700;
     color:var(--text); text-decoration:none; border-radius:14px; background:var(--btn);
-    transition: box-shadow .25s ease, transform .18s ease, filter .25s ease;
-    isolation:isolate;
+    transition: box-shadow .25s ease, transform .18s ease, filter .25s ease; isolation:isolate;
   }
-  /* Subtle breathing halo at half intensity of previous version */
-  .ctaBreath{ --g: rgba(139,208,255,.30); --g2: rgba(167,139,250,.22); }
-  .ctaBreath{ animation: breathe 4.8s ease-in-out infinite }
-  @keyframes breathe{
-    0%,100%{ box-shadow: 0 0 6px 1.5px var(--g) }
-    50%{    box-shadow: 0 0 14px 5px var(--g), 0 0 20px 7px var(--g2) }
+  .ctaBreath{ --g: rgba(139,208,255,.30); --g2: rgba(167,139,250,.22); animation: breathe 4.8s ease-in-out infinite }
+  @keyframes breathe{ 0%,100%{ box-shadow: 0 0 6px 1.5px var(--g) } 50%{ box-shadow: 0 0 14px 5px var(--g), 0 0 20px 7px var(--g2) } }
+  .ctaBreath:hover{ transform: scale(1.01); filter: brightness(1.06); box-shadow: 0 0 16px 6px var(--g), 0 0 24px 10px var(--g2) }
+  .cta::after{ content:""; position:absolute; inset:2px; border-radius:12px; background:linear-gradient(180deg, #17202b, #0f1620); z-index:-1 }
+
+  /* ===== Right screenshot panel ===== */
+  .shot-panel{
+    width: 100%; height: 220px; min-height: 180px;
+    border:1px solid var(--stroke); border-radius:14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+    position:relative; overflow:hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
   }
-  /* Hover: slightly lighter and tiny grow */
-  .ctaBreath:hover{
-    transform: scale(1.01);
-    filter: brightness(1.06);
-    box-shadow: 0 0 16px 6px var(--g), 0 0 24px 10px var(--g2);
-  }
-  /* inner fill */
-  .cta::after{ content:""; position:absolute; inset:2px; border-radius:12px;
-               background:linear-gradient(180deg, #17202b, #0f1620); z-index:-1 }
+  .shot-track{ display:flex; height:100%; width:400%; transition: transform .6s cubic-bezier(.22,.61,.36,1) }
+  .shot{ flex:0 0 100%; height:100%; background:#0b131c; display:grid; place-items:center }
+  .shot img{ width:100%; height:100%; object-fit:cover; image-rendering:auto; filter: contrast(1.02) saturate(1.05) }
+  .shot-panel::after{ content:""; position:absolute; inset:auto 0 0 0; height:44px; background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.35)); pointer-events:none }
+  .shot-caption{ position:absolute; left:10px; bottom:10px; font-size:12px; color:#d3deeb; opacity:.85 }
+  .shot-controls{ position:absolute; top:8px; right:8px; display:flex; gap:6px }
+  .btn-ctrl{ width:26px; height:26px; border-radius:8px; border:1px solid var(--stroke); background: rgba(16,23,32,.9); color:#d5e6ff; font-weight:700; line-height:26px; text-align:center; cursor:pointer; box-shadow: 0 0 10px rgba(110,231,255,.15); transition: transform .15s ease, filter .15s ease, box-shadow .15s ease; user-select:none }
+  .btn-ctrl:hover{ transform:translateY(-1px); filter:brightness(1.08); box-shadow:0 0 14px rgba(110,231,255,.25) }
+  .dots{ position:absolute; left:10px; top:10px; display:flex; gap:6px }
+  .dot{ width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.28); border:1px solid rgba(255,255,255,.15); transition:transform .2s ease, background .2s ease }
+  .dot.active{ background:rgba(110,231,255,.9); transform:scale(1.25) }
 
   /* ===== Features ===== */
-  .features{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px;
-             max-width:1150px; margin:26px auto 8px; padding:0 22px }
-  .card{ padding:18px; border:1px solid var(--stroke); border-radius:16px;
-         background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)) }
+  .features{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:26px 0 8px }
+  .card{ padding:18px; border:1px solid var(--stroke); border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)) }
   .card h3{ margin:0 0 6px; font-size:16px }
   .card p{ margin:0; color:var(--muted); font-size:14px }
 
   .micro{ text-align:center; color:var(--muted); font-size:12px; opacity:.9; margin:14px 0 40px }
 
+  /* ===== Responsive ===== */
   @media (max-width:980px){
+    .hero-grid{ grid-template-columns:1fr; gap:12px }
+    .hero-left{ grid-column:auto }
+    .hero-right{ grid-column:auto }
     h1{font-size:54px}
-    .features{grid-template-columns:1fr}
   }
 </style>
 </head>
@@ -148,48 +152,100 @@
 <header>
   <div class="brand">
     <div class="logo" aria-hidden="true">
-      <!-- simple ink swirl icon -->
       <svg viewBox="0 0 24 24" fill="none">
         <path d="M19.5 11.5c0 4-3 7-7 7-3.2 0-5.5-2-5.5-4.6 0-2.2 1.8-3.9 4.2-3.9 1.8 0 3.3 1 3.3 2.5 0 1.2-1 2.1-2.3 2.1-.9 0-1.7-.5-1.9-1.2" stroke="#6ee7ff" stroke-width="1.6" stroke-linecap="round"/>
       </svg>
     </div>
     <div class="ver">Slipstream <span style="opacity:.65">V40</span></div>
   </div>
-
   <nav class="nav">
     <a href="Slipstream_V40.html">Launch</a>
     <a href="https://github.com/swiftredvox/slipstream" target="_blank" rel="noopener">GitHub</a>
   </nav>
 </header>
 
-<section class="hero">
-  <h1>Slipstream</h1>
-  <p class="sub">
-    Interactive, real‑time ink simulation — all in a single HTML file.<br>
-    Paint swirling ink, explore hypnotic visualisers, and capture screenshots.
-  </p>
+<main class="container">
+  <!-- HERO as grid aligned to features -->
+  <section class="hero-grid">
+    <div class="hero-left">
+      <h1>Slipstream</h1>
+      <p class="sub">
+        Interactive, real‑time ink simulation — all in a single HTML file.<br>
+        Paint swirling ink, explore hypnotic visualisers, and capture screenshots.
+      </p>
+      <a class="cta ctaBreath" href="Slipstream_V40.html">Launch Slipstream</a>
+    </div>
 
-  <div class="cta-row">
-    <a class="cta ctaBreath" href="Slipstream_V40.html">Launch Slipstream</a>
-  </div>
-</section>
+    <aside class="hero-right">
+      <div class="shot-panel" id="shotPanel" aria-label="Slipstream preview screenshots">
+        <div class="shot-track" id="shotTrack">
+          <div class="shot"><img src="screenshots/slipstream_screenshot_1.png" alt="Slipstream screenshot 1"></div>
+          <div class="shot"><img src="screenshots/slipstream_screenshot_2.png" alt="Slipstream screenshot 2"></div>
+          <div class="shot"><img src="screenshots/slipstream_screenshot_3.png" alt="Slipstream screenshot 3"></div>
+          <div class="shot"><img src="screenshots/slipstream_screenshot_4.png" alt="Slipstream screenshot 4"></div>
+        </div>
+        <div class="dots" id="dots" aria-hidden="true">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+        <div class="shot-controls">
+          <div class="btn-ctrl" id="prevBtn" title="Previous">‹</div>
+          <div class="btn-ctrl" id="nextBtn" title="Next">›</div>
+        </div>
+        <div class="shot-caption" id="shotCaption">Preview 4 of 4</div>
+      </div>
+    </aside>
+  </section>
 
-<section class="features">
-  <div class="card">
-    <h3>Real‑Time Ink</h3>
-    <p>GPU‑accelerated flow with brush input, velocity splats, and an optional glow.</p>
-  </div>
-  <div class="card">
-    <h3>Visualiser Modes</h3>
-    <p>Helix Pair, Starburst, Wave Sweep, Infinity or more. Also includes a randomiser.</p>
-  </div>
-  <div class="card">
-    <h3>Portable</h3>
-    <p>Zero installs or external assets. Share one HTML file and it just works.</p>
-  </div>
-</section>
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="card">
+      <h3>Real‑Time Ink</h3>
+      <p>GPU‑accelerated flow with brush input, velocity splats, and an optional glow.</p>
+    </div>
+    <div class="card">
+      <h3>Visualiser Modes</h3>
+      <p>Helix Pair, Starburst, Wave Sweep, Infinity or more. Also includes a randomiser.</p>
+    </div>
+    <div class="card">
+      <h3>Portable</h3>
+      <p>Zero installs or external assets. Share one HTML file and it just works.</p>
+    </div>
+  </section>
 
-<p class="micro">Built with HTML, CSS, JavaScript &amp; WebGL2 • CC0 Public Domain</p>
+  <p class="micro">Built with HTML, CSS, JavaScript &amp; WebGL2 • CC0 Public Domain</p>
+</main>
 
+<script>
+(function(){
+  const track = document.getElementById('shotTrack');
+  const dotsWrap = document.getElementById('dots');
+  const caption = document.getElementById('shotCaption');
+  const prev = document.getElementById('prevBtn');
+  const next = document.getElementById('nextBtn');
+  const panel = document.getElementById('shotPanel');
+
+  const slides = track.children.length;
+  let i = 3; // start on screenshot 4 (0-based index)
+
+  function setSlide(idx){
+    i = (idx + slides) % slides;
+    track.style.transform = `translateX(-${i*100}%)`;
+    [...dotsWrap.children].forEach((d, di)=> d.classList.toggle('active', di===i));
+    caption.textContent = `Preview ${i+1} of ${slides}`;
+  }
+  let timer;
+  function auto(){ timer = setInterval(()=> setSlide(i+1), 3800); }
+  function stop(){ clearInterval(timer); }
+
+  prev.addEventListener('click', ()=>{ stop(); setSlide(i-1); auto(); });
+  next.addEventListener('click', ()=>{ stop(); setSlide(i+1); auto(); });
+  panel.addEventListener('mouseenter', stop);
+  panel.addEventListener('mouseleave', auto);
+  [...dotsWrap.children].forEach((d, di)=> d.addEventListener('click', ()=>{ stop(); setSlide(di); auto(); }));
+
+  setSlide(i); // initialize at screenshot 4
+  auto();
+})();
+</script>
 </body>
 </html>
