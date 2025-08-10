@@ -113,9 +113,15 @@
     position:relative; overflow:hidden;
     box-shadow: 0 10px 30px rgba(0,0,0,.25);
   }
-  .shot-track{ display:flex; height:100%; width:400%; transition: transform .6s cubic-bezier(.22,.61,.36,1) }
+  .shot-track{ display:flex; height:100%; transition: transform .6s cubic-bezier(.22,.61,.36,1) }
   .shot{ flex:0 0 100%; height:100%; background:#0b131c; display:grid; place-items:center }
-  .shot img{ width:100%; height:100%; object-fit:cover; image-rendering:auto; filter: contrast(1.02) saturate(1.05) }
+  /* Fit entire screenshot inside pane, anchored to top-left */
+  .shot img{
+    width:100%; height:100%;
+    object-fit:contain; object-position: left top;
+    image-rendering:auto; filter: contrast(1.02) saturate(1.05);
+    background:#0b131c;
+  }
   .shot-panel::after{ content:""; position:absolute; inset:auto 0 0 0; height:44px; background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.35)); pointer-events:none }
   .shot-caption{ position:absolute; left:10px; bottom:10px; font-size:12px; color:#d3deeb; opacity:.85 }
   .shot-controls{ position:absolute; top:8px; right:8px; display:flex; gap:6px }
@@ -179,19 +185,22 @@
     <aside class="hero-right">
       <div class="shot-panel" id="shotPanel" aria-label="Slipstream preview screenshots">
         <div class="shot-track" id="shotTrack">
+          <!-- Logical order: 4, 1, 2, 3 -->
+          <div class="shot"><img src="screenshots/slipstream_screenshot_4.png" alt="Slipstream screenshot 4"></div>
           <div class="shot"><img src="screenshots/slipstream_screenshot_1.png" alt="Slipstream screenshot 1"></div>
           <div class="shot"><img src="screenshots/slipstream_screenshot_2.png" alt="Slipstream screenshot 2"></div>
           <div class="shot"><img src="screenshots/slipstream_screenshot_3.png" alt="Slipstream screenshot 3"></div>
-          <div class="shot"><img src="screenshots/slipstream_screenshot_4.png" alt="Slipstream screenshot 4"></div>
+          <!-- Clone of first for seamless loop -->
+          <div class="shot"><img src="screenshots/slipstream_screenshot_4.png" alt="" aria-hidden="true"></div>
         </div>
         <div class="dots" id="dots" aria-hidden="true">
-          <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
         </div>
         <div class="shot-controls">
           <div class="btn-ctrl" id="prevBtn" title="Previous">‹</div>
           <div class="btn-ctrl" id="nextBtn" title="Next">›</div>
         </div>
-        <div class="shot-caption" id="shotCaption">Preview 4 of 4</div>
+        <div class="shot-caption" id="shotCaption">Preview 1 of 4</div>
       </div>
     </aside>
   </section>
@@ -224,26 +233,70 @@
   const next = document.getElementById('nextBtn');
   const panel = document.getElementById('shotPanel');
 
-  const slides = track.children.length;
-  let i = 3; // start on screenshot 4 (0-based index)
-
-  function setSlide(idx){
-    i = (idx + slides) % slides;
-    track.style.transform = `translateX(-${i*100}%)`;
-    [...dotsWrap.children].forEach((d, di)=> d.classList.toggle('active', di===i));
-    caption.textContent = `Preview ${i+1} of ${slides}`;
-  }
+  const logicalSlides = 4;         // we show dots/caption for 4 logical slides
+  let i = 0;                       // current index in logical space (0..3)
+  let pos = 0;                     // current slide position in the track (0..logicalSlides) where last is the clone
+  const stepMs = 4200;             // autoplay delay
   let timer;
-  function auto(){ timer = setInterval(()=> setSlide(i+1), 3800); }
+
+  function updateUI(){
+    // Move track to 'pos'
+    track.style.transform = `translateX(-${pos*100}%)`;
+    // Update dots based on logical index
+    [...dotsWrap.children].forEach((d, di)=> d.classList.toggle('active', di===i));
+    caption.textContent = `Preview ${i+1} of ${logicalSlides}`;
+  }
+
+  function nextSlide(){
+    pos += 1;
+    i = (i + 1) % logicalSlides;
+    updateUI();
+  }
+
+  function prevSlide(){
+    // If we're at the start (pos 0), jump to cloned end first without animation, then move back one
+    if (pos === 0){
+      // snap to clone at end
+      track.style.transition = 'none';
+      pos = logicalSlides;
+      track.style.transform = `translateX(-${pos*100}%)`;
+      track.offsetHeight; // force reflow
+      track.style.transition = ''; // restore
+    }
+    pos -= 1;
+    i = (i - 1 + logicalSlides) % logicalSlides;
+    updateUI();
+  }
+
+  // Handle seamless wrap when advancing from clone
+  track.addEventListener('transitionend', () => {
+    if (pos === logicalSlides){ // we've reached the clone (slide after 3)
+      track.style.transition = 'none';
+      pos = 0;                 // snap back to real first
+      track.style.transform = `translateX(-${pos*100}%)`;
+      track.offsetHeight;      // reflow
+      track.style.transition = ''; // restore for next moves
+    }
+  });
+
+  function auto(){ timer = setInterval(nextSlide, stepMs); }
   function stop(){ clearInterval(timer); }
 
-  prev.addEventListener('click', ()=>{ stop(); setSlide(i-1); auto(); });
-  next.addEventListener('click', ()=>{ stop(); setSlide(i+1); auto(); });
+  prev.addEventListener('click', ()=>{ stop(); prevSlide(); auto(); });
+  next.addEventListener('click', ()=>{ stop(); nextSlide(); auto(); });
   panel.addEventListener('mouseenter', stop);
   panel.addEventListener('mouseleave', auto);
-  [...dotsWrap.children].forEach((d, di)=> d.addEventListener('click', ()=>{ stop(); setSlide(di); auto(); }));
+  [...dotsWrap.children].forEach((d, di)=> d.addEventListener('click', ()=>{
+    stop();
+    // Jump to selected logical slide
+    i = di;
+    pos = di;
+    updateUI();
+    auto();
+  }));
 
-  setSlide(i); // initialize at screenshot 4
+  // Init at first logical slide (screenshot 4)
+  updateUI();
   auto();
 })();
 </script>
